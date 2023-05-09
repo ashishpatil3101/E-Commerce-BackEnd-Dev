@@ -36,6 +36,16 @@ const  productSchema =  new mongoose.Schema({
         type: Number,
         default: 0
     },
+    comments: [
+        {
+            userhandle: {
+                type: String
+            },
+            content: {
+                type: String
+            }
+        }
+    ]
  
 
 },{ timestamps: true

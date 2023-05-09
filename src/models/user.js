@@ -27,6 +27,11 @@ const UserSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
+    userhandle:{
+        type: String,
+        required: true,
+        unique: true
+    },
     role: {
         type: String,
         default: 'user'
@@ -49,7 +54,8 @@ const UserSchema = new mongoose.Schema({
             ref: 'Product'
       
         }
-    ],
+    ]
+ 
 
 },{ timestamps: true});
 

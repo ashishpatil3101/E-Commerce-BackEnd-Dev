@@ -8,7 +8,8 @@ const  {
     createProduct,
     updateProduct,
     deleteProduct,
-    addToWishlist
+    addToWishlist,
+    postComment
 
 }  = require('../controllers/product-controller')
 
@@ -31,7 +32,9 @@ router.put('/id/:id', isAdmin,  updateProduct)
 
 router.delete('/:id',  isAdmin ,deleteProduct);
 
-router.put('/addTowishList' ,  authMiddleware, addToWishlist );
+router.put('/addTowishList/' ,  authMiddleware, addToWishlist );
+
+router.post('/comment/', authMiddleware , postComment )
 
 
 

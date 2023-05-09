@@ -199,6 +199,70 @@ const addToWishlist = async( req,res)=>{
     }
 };
 
+const postComment = async( req,res)=>{
+    try {
+        
+        const  Product = await get( ProductModel ,req.body.productId );
+        if( !Product ) throw new error('Product does not exist')
+      
+        var  UserResponse = await get( userModel, req.params.id );
+   
+        if( !UserResponse ) throw new error('User does not exist') 
+
+ 
+        let userHandle = UserResponse.userhandle;
+
+        let productCommentArray =  Product.comments
+
+        let index = -1;
+
+        for( let i = 0 ; i < productCommentArray.length ; i++){
+
+            if( productCommentArray[i].userhandle === userHandle ){
+                  index = i;
+                  break;
+            }
+        }
+
+        if(  index > -1 ){
+
+            let content =  req.body.content
+           
+           
+            //user says that i will remove the content 
+            if( !content ) productCommentArray.splice( index , 1 )
+            //udate the content
+            else{
+                let tmpComment = productCommentArray[index]
+                tmpComment.content = content;
+            }
+        }
+        else{
+
+            if ( req.body.content) productCommentArray.push({ userhandle: userHandle, content: req.body.content})
+        }
+       
+        await Product.save(); 
+
+        return res.status(201).json({
+            success: true,
+            message: 'product has added to wishList successfully',
+            data: Product
+           
+        })
+        
+    } 
+    
+    catch (error) {
+        console.log('somethings wrong in product -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: 'not able to add comment on product' ,
+            error: error
+        })
+    }
+};
 
 
 
@@ -209,5 +273,6 @@ module.exports = {
     updateProduct,
     deleteProduct,
     addToWishlist,
+    postComment
   
 }
