@@ -7,7 +7,8 @@ const  {
     getProduct,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    addToWishlist
 
 }  = require('../controllers/product-controller')
 
@@ -26,9 +27,11 @@ router.get('/:id' ,getProduct )
 
 
 //update
-router.put('/:id', isAdmin,  updateProduct)
+router.put('/id/:id', isAdmin,  updateProduct)
 
 router.delete('/:id',  isAdmin ,deleteProduct);
+
+router.put('/addTowishList' ,  authMiddleware, addToWishlist );
 
 
 

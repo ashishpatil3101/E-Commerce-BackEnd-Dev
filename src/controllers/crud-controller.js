@@ -27,11 +27,12 @@ const getAll = async ( model ,Filterdata )=>{
 
     try {
         
+      
        
         if( !Filterdata) var result =  await model.find( );
-        else var result =  await model.find( Filterdata );
+        else var result =  await model.find( Filterdata ).limit(8);
+        
      
-      
         return result;
     } 
     catch (error) {

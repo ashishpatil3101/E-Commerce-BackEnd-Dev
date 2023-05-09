@@ -25,23 +25,18 @@ const  productSchema =  new mongoose.Schema({
     images: {
         type: Array
     },
-    ratings: [
-        {
-            star: Number,
-            postedby: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'User'
-            }
-        }
-    ],
+   
     brand: {
-        type: String,
-        required: true
+        type:  mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Brand'
+
     },
     sold: {
         type: Number,
         default: 0
-    }
+    },
+ 
 
 },{ timestamps: true
 });

@@ -23,7 +23,7 @@ router.post('/register' ,createUser);
 router.post('/login', userlogIn );
 
 router.get('/All', getAllUser );
-router.get('/:id', getUser);
+router.get('/id/:id', getUser);
 
 router.delete('/:id' ,  deleteUser );
 

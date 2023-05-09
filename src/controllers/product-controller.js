@@ -3,6 +3,9 @@ const ProductModel = require('../models/product');
 
 const { get,getAll , destroy , update ,create } = require('../controllers/crud-controller');
 const { default: slugify } = require('slugify');
+const axios =  require('axios')
+const userModel = require('../models/user')
+
 
 const createProduct = async  ( req,res )=>{
 
@@ -149,16 +152,62 @@ const deleteProduct = async( req,res)=>{
         return res.status(500).json({
 
             success: false,
-            message: 'not able to delte product',
+            message: 'not able to delete product',
             error: error
         })
     }
 }
+
+const addToWishlist = async( req,res)=>{
+    try {
+        
+        const  Product = await get( ProductModel ,req.body.productId );
+        if( !Product ) throw new error('Product does not exist')
+      
+        var  UserResponse = await get( userModel, req.params.id );
+   
+        if( !UserResponse ) throw new error('User does not exist') 
+
+ 
+        let wishListArray = UserResponse.wishlist;
+        if( !wishListArray.includes( Product.id )) wishListArray.push( Product.id );
+        else {
+            let index =  wishListArray.indexOf( Product.id );
+
+            if( index > -1 ) wishListArray.splice( index , 1 );
+        }
+    
+        await UserResponse.save(); 
+
+        return res.status(201).json({
+            success: true,
+            message: 'product has added to wishList successfully',
+            data: UserResponse
+           
+        })
+        
+    } 
+    
+    catch (error) {
+        console.log('somethings wrong in product -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: 'not able to add product to wishList' ,
+            error: error
+        })
+    }
+};
+
+
+
 
 module.exports = {
     getProduct,
     createProduct,
     getAllProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    addToWishlist,
+  
 }

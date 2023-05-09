@@ -10,6 +10,12 @@ const morgan = require('morgan');
 const AuthRouter = require('./routes/authRouts');
 const ProductRouter = require('./routes/product-routs')
 
+const BlogRouter =  require('./routes/blogRouts')
+const CategoryRouter =  require('./routes/categoryrouts')
+
+const BrandRouter =  require('./routes/brandRouts');
+
+
 const dotenv =  require('dotenv').config();
 const PORT = process.env.PORT;
 
@@ -28,6 +34,12 @@ const setupAndStartServer = () =>{
     App.use( '/api/user',AuthRouter);
     //product route
     App.use( '/api/product', ProductRouter );
+    //blog route
+    App.use('/api/blog', BlogRouter)
+    //category route
+    App.use('/api/category' , CategoryRouter)
+    //brand route
+    App.use('/api/brand', BrandRouter );
 
     
     App.listen( PORT,  async () =>{

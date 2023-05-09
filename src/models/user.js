@@ -50,9 +50,7 @@ const UserSchema = new mongoose.Schema({
       
         }
     ],
-    refreshtoken: {
-        type: String
-    }
+
 },{ timestamps: true});
 
 UserSchema.pre( 'save', function ( next){
