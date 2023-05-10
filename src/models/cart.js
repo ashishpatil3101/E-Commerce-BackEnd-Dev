@@ -7,6 +7,9 @@ const cartSchema = new mongoose.Schema({
             product: {
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'Product'
+            },
+            price: {
+                type: Number
             }
         
         }
@@ -17,6 +20,10 @@ const cartSchema = new mongoose.Schema({
     },
     totalafterdiscount: {
         type: Number
+    },
+    orderby: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 
 },{ timestamps: true} )

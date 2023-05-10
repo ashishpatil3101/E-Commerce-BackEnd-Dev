@@ -10,7 +10,13 @@ const {
     Block_unblockUser,
     adminlogIn,
     getWishlist,
-    addToCart
+    addToCart,
+    getUserCart,
+    emptyCart,
+    applyCoupon,
+    createOrder,
+    getOrder,
+    updatOrderStatus
  
     } 
     = require('../controllers/user-controller');
@@ -32,7 +38,7 @@ router.post('/Adminlogin', adminlogIn );
 router.get('/All', getAllUser );
 router.get('/id/:id', getUser);
 
-router.delete('/:id' ,  deleteUser );
+router.delete('/id/:id' ,  deleteUser );
 
 //send token and body as to be updated
 router.patch('/',authMiddleware, updateUser )
@@ -44,14 +50,21 @@ router.put('/unblock-user',authMiddleware,isAdmin, Block_unblockUser);
 
 router.get('/user-wishList/:id', authMiddleware, getWishlist)
 
+// router.post('/cart' ,authMiddleware, createCart );
 
+router.post('/AddProductToCart' ,authMiddleware,createCart,addToCart );
 
-router.post('/cart' ,authMiddleware, createCart );
+router.get('/cart' , authMiddleware, getUserCart );
 
-router.post('/AddProductToCart' ,authMiddleware, addToCart )
+router.delete('/cart' , authMiddleware, emptyCart );
 
+router.get('/cart/coupon', authMiddleware ,applyCoupon);
 
+router.post('/createorder', authMiddleware ,createOrder  )
 
+router.get('/order',authMiddleware, getOrder )
+
+router.put('/order/status', authMiddleware,isAdmin, updatOrderStatus)
 
 
 module.exports =  router;

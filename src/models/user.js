@@ -62,6 +62,15 @@ const UserSchema = new mongoose.Schema({
         
         
     } 
+    ,
+    orders:[ 
+        {
+        order: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order'
+        }
+    }
+    ]
         
  },{ timestamps: true});
 

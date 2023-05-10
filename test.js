@@ -1,6 +1,4 @@
 const { Buffer } = require( 'node:buffer');
 
-const buf = Buffer.from('<Buffer 64 5a 69 cc 11 d4 ff 30 bd ff 1e 37>', 'hex');
 
-console.log(buf.toString('utf8'));
-console.log(1)
+console.log(new Date('2023-05-09T07:50:57.893+00:00'))

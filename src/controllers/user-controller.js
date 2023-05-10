@@ -1,6 +1,8 @@
 const user = require('../models/user');
 const product =  require('../models/product')
-const cart =  require('../models/cart')
+const cart =  require('../models/cart');
+const coupon =  require('../models/coupon')
+const order = require('../models/order')
 
 const  { createToken } = require('../config/jwtToken')
 const { create ,get,getAll , destroy , update } = require('../controllers/crud-controller');
@@ -322,22 +324,23 @@ const addToCart = async( req ,res )=>{
         const productId =  req.body.productId
         const productDetail = await product.findById( productId );
 
-        
-        let cartID = req.body.cartId;
+       
+       
+        let cartID = UserDetail.cart;
        
         const CART  = await cart.findById( cartID )
     
-        console.log("user",CART)
+        
 
         let cartProductArray = CART.products;
 
         if( !cartProductArray ) cartProductArray = [];
 
        var isProductPresnt = false;
-          
+       console.log("user",cartProductArray)
         for ( let  i = 0; i < cartProductArray.length ; i++){
-
-            if( cartProductArray[i].id === productId){
+           
+            if( cartProductArray[i].product == productId){
                 
                 isProductPresnt = true;
                 break;
@@ -348,12 +351,13 @@ const addToCart = async( req ,res )=>{
         let alreadyPresentTotalPrice = CART.carttotal
 
        if( !isProductPresnt )  alreadyPresentTotalPrice += productDetail.price;
-        console.log("user  122 ",cartProductArray)
+        // console.log("user  122 ",cartProductArray)
 
-        if( !isProductPresnt ) cartProductArray.push( productId );
+        if( !isProductPresnt ) cartProductArray.push( { product: productId,price: productDetail.price } );
 
         UserDetail.cart = CART;
         CART.carttotal = alreadyPresentTotalPrice;
+        CART.orderby = UserDetail.id;
 
        
        
@@ -391,6 +395,341 @@ const addToCart = async( req ,res )=>{
 
 }
 
+const getUserCart = async( req ,res )=>{
+
+   
+    try {
+        
+        const UserDetail =  await user.findById( req.params.id );
+        if( !UserDetail ) throw new error('User does not exist')
+
+        
+
+        console.log("user",UserDetail.cart)
+       
+        let cartID = UserDetail.cart;
+
+        if( cartID == null  )throw ({error: 'users cart does not exists'})
+       
+        const CART  = await cart.findById( cartID )
+    
+        //  throw('product already exist in cart')
+
+
+        return res.status(201).json({
+            success: true,
+            message: `successfully fetched the user,s cart`,
+            data: {
+                email: UserDetail.email,
+                cart: CART.products,
+                carttotal: CART.carttotal
+            }
+           
+        })
+        
+    } 
+    
+    catch (error) {
+       
+        console.log('somethings wrong in user -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: `not able to get user,s cart`,
+            error: error
+        })
+    }
+
+
+}
+
+const emptyCart =  async( req ,res )=>{
+
+   
+    try {
+        
+        const UserDetail =  await user.findById( req.params.id );
+        if( !UserDetail ) throw new error('User does not exist')
+        
+        
+
+       
+        let cartID = UserDetail.cart;
+       
+        const CART  = await cart.findByIdAndDelete( cartID )
+    
+        //  throw('product already exist in cart')
+        
+        UserDetail.cart = null;
+       await UserDetail.save();
+
+       
+       console.log("user",UserDetail.cart)
+
+        return res.status(201).json({
+            success: true,
+            message: `successfully delete the user,s cart`,
+            data: {
+                email: UserDetail,
+                cart: CART.products,
+                carttotal: CART.carttotal
+            }
+           
+        })
+        
+    } 
+    
+    catch (error) {
+       
+        console.log('somethings wrong in user -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: `not able to delete user,s cart`,
+            error: error
+        })
+    }
+
+
+}
+
+const applyCoupon = async( req ,res )=>{
+
+   
+    try {
+        
+        const UserDetail =  await user.findById( req.params.id );
+        if( !UserDetail ) throw new error('User does not exist')
+        
+        let cartID = UserDetail.cart;
+
+        if( cartID === null) throw('coupon cannot be applied on empty cart')
+       
+        const CART  = await cart.findById( cartID )
+    
+        //  throw('product already exist in cart')
+        const  couponDetail = await coupon.findOne({name: req.body.couponName})
+
+        const todayDate = new Date();
+        console.log("user",couponDetail)
+
+        let afterCouponApplying = CART.carttotal 
+      
+
+        let couponExpiry = couponDetail.expiry;
+        couponExpiry = couponExpiry+"";
+
+        let couponValidity =  new Date(couponExpiry)
+        console.log(couponValidity)
+       
+        if( todayDate.getTime() >= couponValidity.getTime() ) afterCouponApplying = CART.carttotal - CART.carttotal * (couponDetail.discount/100)
+        else { throw ('coupon alredy expired')};
+       
+      
+        await UserDetail.save();
+        await CART.save();
+
+       
+     
+
+        return res.status(201).json({
+            success: true,
+            message: `successfully apply the coupon on cart`,
+            data: {
+                email: UserDetail.email,
+                cart: CART.products,
+                discount: couponDetail.discount,
+                beforeCouponApplying : CART.carttotal,
+                afterCouponApplying : afterCouponApplying
+            }
+           
+        })
+        
+    } 
+    
+    catch (error) {
+       
+        console.log('somethings wrong in user -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: `not able to apply coupon on  user,s cart`,
+            error: error
+        })
+    }
+
+
+}
+
+const createOrder =  async( req ,res )=>{
+
+   
+    try {
+        
+        const UserDetail =  await user.findById( req.params.id );
+        if( !UserDetail ) throw new error('User does not exist')
+        
+        let cartID = UserDetail.cart;
+
+        if( cartID === null) throw('order cannot be placed on empty cart')
+       
+        const CART  = await cart.findById( cartID )
+    
+        //  throw('product already exist in cart')
+        const  couponDetail = await coupon.findOne({name: req.body.couponName})
+
+        const todayDate = new Date();
+        console.log("user",couponDetail)
+
+        let afterCouponApplying = CART.carttotal 
+      
+
+        let couponExpiry = couponDetail.expiry;
+        couponExpiry = couponExpiry+"";
+
+        let couponValidity =  new Date(couponExpiry)
+       
+       
+        if( todayDate.getTime() >= couponValidity.getTime() ) afterCouponApplying = CART.carttotal - CART.carttotal * (couponDetail.discount/100)
+        else { throw ('coupon alredy expired')};
+
+        const newOrder = await order.create({
+           products: CART.products,
+           totalPrice: afterCouponApplying,
+           orderstatus: 'processing',
+           orderby: UserDetail.email,
+           deliverymode: req.body.deliverymode
+        });
+         console.log('new order',newOrder)
+        
+        //update product count
+
+
+
+        let productArray = newOrder.products
+
+        for(let i = 0; i < productArray.length ;i++ ){
+
+            const productDetail = await product.findById( productArray[i].product );
+            console.log('product  ',productDetail)
+
+            await product.findByIdAndUpdate( productArray[i].product ,{quantity: productDetail.quantity-1,sold: productDetail.sold +1 })
+        }
+
+        UserDetail.orders.push( {order: newOrder}  );
+        UserDetail.cart = null;
+        await cart.findByIdAndDelete( cartID )
+       
+        await UserDetail.save();
+       
+        
+
+        return res.status(201).json({
+            success: true,
+            message: `successfully ordered`,
+            data: {
+                email: UserDetail.email,
+                products: newOrder.products,
+                discount: couponDetail.discount,
+                beforeCouponApplying : CART.carttotal,
+                afterCouponApplying : afterCouponApplying,
+
+            }
+           
+        })
+        
+    } 
+    
+    catch (error) {
+       
+        console.log('somethings wrong in user -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: `not able to ordered`,
+            error: error
+        })
+    }
+
+
+}
+
+const getOrder =  async( req ,res )=>{
+
+   
+    try {
+        
+        const UserDetail =  await user.findById( req.params.id );
+        if( !UserDetail ) throw new error('User does not exist')
+        
+        const ORDER = await order.findById( req.body.orderId )
+        
+
+        return res.status(201).json({
+            success: true,
+            message: `successfully get the ordere`,
+            data: {
+                email: UserDetail.email,
+                order: ORDER
+
+            }
+           
+        })
+        
+    } 
+    
+    catch (error) {
+       
+        console.log('somethings wrong in user -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: `not able to get the order`,
+            error: error
+        })
+    }
+
+
+}
+
+const updatOrderStatus = async( req ,res )=>{
+
+   
+    try {
+        
+        const UserDetail =  await user.findById( req.params.id );
+        if( !UserDetail ) throw new error('User does not exist')
+        
+        const ORDER = await order.findByIdAndUpdate( req.body.orderId,{orderstatus: req.body.status},{new: true} )
+        
+
+        return res.status(201).json({
+            success: true,
+            message: `successfully update status ofthe order`,
+            data: {
+                email: UserDetail.email,
+                order: ORDER
+
+            }
+           
+        })
+        
+    } 
+    
+    catch (error) {
+       
+        console.log('somethings wrong in user -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: `not able to update status of the order`,
+            error: error
+        })
+    }
+
+
+}
+
 
 
 module.exports = {
@@ -403,6 +742,12 @@ module.exports = {
     Block_unblockUser,
     adminlogIn,
     getWishlist
-    ,addToCart
-    
+    ,addToCart,
+    getUserCart,
+    emptyCart
+    ,
+    applyCoupon,
+    createOrder,
+    getOrder,
+    updatOrderStatus
 }

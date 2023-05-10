@@ -20,6 +20,9 @@ const orderSchema = new mongoose.Schema({
     },
     orderby: {
         type: String
+    },
+    deliverymode:{
+        type: String
     }
 },{ timestamps: true} )
 
