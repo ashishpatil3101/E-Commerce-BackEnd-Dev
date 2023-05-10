@@ -54,10 +54,16 @@ const UserSchema = new mongoose.Schema({
             ref: 'Product'
       
         }
-    ]
- 
-
-},{ timestamps: true});
+    ],
+    cart:{
+       
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Cart',
+        
+        
+    } 
+        
+ },{ timestamps: true});
 
 UserSchema.pre( 'save', function ( next){
 

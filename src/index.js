@@ -14,6 +14,7 @@ const BlogRouter =  require('./routes/blogRouts')
 const CategoryRouter =  require('./routes/categoryrouts')
 
 const BrandRouter =  require('./routes/brandRouts');
+const CouponRouter =  require('./routes/couponRouts')
 
 
 const dotenv =  require('dotenv').config();
@@ -40,6 +41,8 @@ const setupAndStartServer = () =>{
     App.use('/api/category' , CategoryRouter)
     //brand route
     App.use('/api/brand', BrandRouter );
+    //coupon route
+    App.use('/api/coupon' , CouponRouter )
 
     
     App.listen( PORT,  async () =>{

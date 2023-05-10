@@ -8,9 +8,14 @@ const {
     deleteUser ,
     updateUser,
     Block_unblockUser,
-    unblockUser
+    adminlogIn,
+    getWishlist,
+    addToCart
+ 
     } 
     = require('../controllers/user-controller');
+
+const {  createCart  } = require('../controllers/cart-controller')
 
 const { 
     authMiddleware,
@@ -21,6 +26,8 @@ const router =  express.Router();
 
 router.post('/register' ,createUser);
 router.post('/login', userlogIn );
+//admin login
+router.post('/Adminlogin', adminlogIn );
 
 router.get('/All', getAllUser );
 router.get('/id/:id', getUser);
@@ -34,6 +41,15 @@ router.patch('/',authMiddleware, updateUser )
 //send token  and id as body param to be toggle block
 router.put('/block-user',authMiddleware,isAdmin, Block_unblockUser);
 router.put('/unblock-user',authMiddleware,isAdmin, Block_unblockUser);
+
+router.get('/user-wishList/:id', authMiddleware, getWishlist)
+
+
+
+router.post('/cart' ,authMiddleware, createCart );
+
+router.post('/AddProductToCart' ,authMiddleware, addToCart )
+
 
 
 

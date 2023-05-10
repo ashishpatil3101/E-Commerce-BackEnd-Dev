@@ -1,13 +1,17 @@
 const user = require('../models/user');
+const product =  require('../models/product')
+const cart =  require('../models/cart')
+
 const  { createToken } = require('../config/jwtToken')
-const { get,getAll , destroy , update } = require('../controllers/crud-controller');
+const { create ,get,getAll , destroy , update } = require('../controllers/crud-controller');
 
 const createUser =  async( req ,res )=>{
 
     try {
          
+       
         const isExisted =  await user.findOne(
-            {
+            {  
                  email: req.body.email 
             }
         );
@@ -78,7 +82,51 @@ const userlogIn = async(req ,res ) =>{
         })
     }
 }
+const adminlogIn = async(req ,res ) =>{
 
+    try {
+        
+        const { email ,password }= req.body;
+        
+       
+
+        const IsUserPresent  =  await user.findOne({
+            email: email
+        });
+     
+        if( !IsUserPresent )throw{ message: 'user does not exist'};
+        
+        const result = await IsUserPresent.isPasswordMatch( password )
+
+        if( IsUserPresent.role != 'Admin') throw 'user is not admin'
+            
+        if( !result) throw {message: 'please enter correct password'};
+
+        const token = await createToken({id: IsUserPresent.id,email: IsUserPresent.email})
+        
+
+        return res.status(201).json({
+            success: true,
+            message: 'Admin successfully loged in',
+            data: {
+                email: IsUserPresent.email,
+                Token: token
+            }
+           
+        })
+        
+    } 
+    
+    catch (error) {
+        console.log('somethings wrong in user -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: 'not able to login ',
+            error: error
+        })
+    }
+}
 const getUser = async( req, res)=>{
     
       try {
@@ -225,6 +273,123 @@ const Block_unblockUser =  async( req ,res )=>{
 
 
 }
+const getWishlist =  async( req ,res )=>{
+
+   
+    try {
+        
+        const UserDetail =  await user.findById( req.params.id);
+        if( !UserDetail ) throw new error('User does not exist')
+        
+        const wishlistArray = UserDetail.wishlist;
+
+         return res.status(201).json({
+            success: true,
+            message: `successfully get the wishlist`,
+            data: {
+                email: UserDetail.email,
+                wishList: wishlistArray
+            }
+           
+        })
+        
+    } 
+    
+    catch (error) {
+       
+       
+
+        console.log('somethings wrong in user -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: `not able get  the users wishlist`,
+            error: error
+        })
+    }
+
+
+}
+
+const addToCart = async( req ,res )=>{
+
+   
+    try {
+        
+        const UserDetail =  await user.findById( req.params.id);
+        if( !UserDetail ) throw new error('User does not exist')
+
+        const productId =  req.body.productId
+        const productDetail = await product.findById( productId );
+
+        
+        let cartID = req.body.cartId;
+       
+        const CART  = await cart.findById( cartID )
+    
+        console.log("user",CART)
+
+        let cartProductArray = CART.products;
+
+        if( !cartProductArray ) cartProductArray = [];
+
+       var isProductPresnt = false;
+          
+        for ( let  i = 0; i < cartProductArray.length ; i++){
+
+            if( cartProductArray[i].id === productId){
+                
+                isProductPresnt = true;
+                break;
+            }
+        }
+        //  throw('product already exist in cart')
+
+        let alreadyPresentTotalPrice = CART.carttotal
+
+       if( !isProductPresnt )  alreadyPresentTotalPrice += productDetail.price;
+        console.log("user  122 ",cartProductArray)
+
+        if( !isProductPresnt ) cartProductArray.push( productId );
+
+        UserDetail.cart = CART;
+        CART.carttotal = alreadyPresentTotalPrice;
+
+       
+       
+
+        await CART.save();
+        await UserDetail.save();
+        
+        
+
+         return res.status(201).json({
+            success: true,
+            message: `successfully updated the cart`,
+            data: {
+                email: UserDetail.email,
+                cart: UserDetail.cart
+            }
+           
+        })
+        
+    } 
+    
+    catch (error) {
+       
+       
+
+        console.log('somethings wrong in user -controller layer')
+        return res.status(500).json({
+
+            success: false,
+            message: `not able to update cart`,
+            error: error
+        })
+    }
+
+
+}
 
 
 
@@ -236,5 +401,8 @@ module.exports = {
     deleteUser,
     updateUser,
     Block_unblockUser,
+    adminlogIn,
+    getWishlist
+    ,addToCart
     
 }
